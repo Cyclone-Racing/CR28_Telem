@@ -37,9 +37,48 @@ const osThreadAttr_t adcTask_attributes = {
 
 
 /* Private Function Prototypes */
-void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
 void StartDefaultTask(void *argument);
+void StartADCTask(void *argument);
+void ADC_Init(void);
+
+/**
+ * @brief Initialization of the ADC
+ * @note Page 930 on RM0433 Covers enable procedure
+ * 
+ */
+void ADC_Init() {
+  RCC->AHB1ENR |= RCC_AHB1ENR_ADC12EN; // Enable ADC Clock
+  // Enable GPIO Clocks
+  RCC->AHB4ENR |= RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN
+              | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_GPIODEN | RCC_AHB4ENR_GPIOEEN 
+              | RCC_AHB4ENR_GPIOFEN | RCC_AHB4ENR_GPIOGEN | RCC_AHB4ENR_GPIOHEN 
+              | RCC_AHB4ENR_GPIOIEN | RCC_AHB4ENR_GPIOJEN | RCC_AHB4ENR_GPIOKEN;
+  // ADC1->ADC_CCR |= ADC_CCR_PRESC_Msk | 0b0010; // Set ADC Prescaler to 4
+
+  ADC1->CR &= ~ADC_CR_ADEN; // Make sure ADC is disabled
+  ADC1->CR &= ~ADC_CR_DEEPPWD; // Make sure ADC is not in Deep Power Down Mode
+  ADC1->CR |= ADC_CR_ADVREGEN; // Enable ADC Voltage Regulator
+  ADC1->CR |= ADC_CR_ADSTART; // Continous Conversion Mode
+  while (!(ADC1->ISR & ADC_ISR_LDORDY)); // Wait for ADC to be ready
+  
+  //Configure ADC Channels to Single Ended Mode
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_0;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_1;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_2;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_3;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_4;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_5;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_6;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_7;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_8;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_9;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_10;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_11;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_12;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_13;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_14;
+  ADC1->DIFSEL &= ~ADC_DIFSEL_DIFSEL_15;
+}
 
 /**
   * @brief  Function implementing the defaultTask thread.
@@ -77,13 +116,10 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-  /* Configure the system clock */
+  // HAL Sysclock config TODO: Test if this is needed
   SystemClock_Config();
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-
-  /* Init scheduler */
+  // Init RTOS
   osKernelInitialize();
 
   /* BEGIN RTOS_MUTEX */
@@ -117,7 +153,7 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
+  * @brief HAL System Clock Configuration
   * @retval None
   */
 void SystemClock_Config(void)
@@ -167,115 +203,6 @@ void SystemClock_Config(void)
   }
 }
 
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_GPIO_Init(void)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-  /* GPIO Ports Clock Enable */
-  RCC->AHB4ENR |= RCC_AHB4ENR_GPIOAEN 
-              | RCC_AHB4ENR_GPIOBEN 
-              | RCC_AHB4ENR_GPIOCEN 
-              | RCC_AHB4ENR_GPIODEN 
-              | RCC_AHB4ENR_GPIOEEN 
-              | RCC_AHB4ENR_GPIOGEN 
-              | RCC_AHB4ENR_GPIOHEN;
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(USB_OTG_FS_PWR_EN_GPIO_Port, USB_OTG_FS_PWR_EN_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PC1 PC4 PC5 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PA1 PA2 PA7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_7;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : LD1_Pin LD3_Pin */
-  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PB13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_13;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : STLINK_RX_Pin STLINK_TX_Pin */
-  GPIO_InitStruct.Pin = STLINK_RX_Pin|STLINK_TX_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : USB_OTG_FS_PWR_EN_Pin */
-  GPIO_InitStruct.Pin = USB_OTG_FS_PWR_EN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(USB_OTG_FS_PWR_EN_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : USB_OTG_FS_OVCR_Pin */
-  GPIO_InitStruct.Pin = USB_OTG_FS_OVCR_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(USB_OTG_FS_OVCR_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PA8 PA11 PA12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_11|GPIO_PIN_12;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF10_OTG1_FS;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PG11 PG13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_13;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
-}
-
 
 /**
   * @brief  Period elapsed callback in non blocking mode
@@ -303,18 +230,3 @@ void Error_Handler(void)
   while (1) {
   }
 }
-
-#ifdef  USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
-void assert_failed(uint8_t *file, uint32_t line)
-{
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-}
-#endif /* USE_FULL_ASSERT */
