@@ -178,7 +178,8 @@ void StartDefaultTask(void *argument)
 }
 
 /**
- * @brief Function to read from ADC
+ * @brief Function to read from ADC buffer
+ * @note Read from ADC DMA Buffer and update Telem data struct
  * @param argument: Not used
  * @retval None
  */
