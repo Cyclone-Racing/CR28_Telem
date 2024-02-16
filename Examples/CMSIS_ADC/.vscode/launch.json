@@ -14,7 +14,7 @@
             "servertype": "stutil",
             "device": "STM32H743IZ2",
             "interface": "swd",
-            "svdFile": "${workspaceFolder}/Docs/STM32H743ZI.svd",
+            "svdFile": "${workspaceFolder}../../Docs/STM32H743ZI.svd",
         }
     ]
 }
