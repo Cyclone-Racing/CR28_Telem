@@ -1,5 +1,5 @@
 {
     "cortex-debug.gdbPath": "/usr/bin/gdb-multiarch",
     "cortex-debug.stutilPath": "/usr/bin/st-util",
-    "cortex-debug.armToolchainPath": "/usr/bin/arm-none-eabi-gcc"
+    "cortex-debug.armToolchainPath": "/usr/bin/"
 }

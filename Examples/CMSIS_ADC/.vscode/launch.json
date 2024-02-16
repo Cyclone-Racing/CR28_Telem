@@ -7,81 +7,14 @@
         {
             "name": "Cortex Debug",
             "cwd": "${workspaceFolder}",
-            "executable": "${workspaceFolder}/build/CMSIS_ADC.elf",
+            "preLaunchCommands": ["make -j8"],
+            "executable": "./build/Blinky.elf",
             "request": "launch",
             "type": "cortex-debug",
-            "servertype": "stlink",
-            "device": "STM32H743ZI",
+            "servertype": "stutil",
+            "device": "STM32H743IZ2",
             "interface": "swd",
-            "runToEntryPoint": "main",
-            "preLaunchCommands": ["make -j8"],
-            // "svdFile": "${workspaceFolder}/STM32H743ZI.svd",
-            "swoConfig": {
-                "enabled": true,
-                "cpuFrequency": 4000000,
-                "swoFrequency": 4000000,
-                "source": "probe",
-                "decoders": [
-                    {
-                        "type": "console",
-                        "label": "ITM",
-                        "port": 0
-                    }
-                ]
-            }
-        },
-        {
-            "name": "Cortex Attach",
-            "cwd": "${workspaceFolder}",
-            "executable": "${workspaceFolder}/build/CMSIS_ADC.elf",
-            "request": "Attach",
-            "type": "cortex-debug",
-            "servertype": "stlink",
-            "device": "STM32H743ZI",
-            "interface": "swd",
-            "runToEntryPoint": "main",
-            "preLaunchCommands": ["make -j8"],
-            // "svdFile": "${workspaceFolder}/STM32H743ZI.svd",
-            "swoConfig": {
-                "enabled": true,
-                "cpuFrequency": 4000000,
-                "swoFrequency": 4000000,
-                "source": "probe",
-                "decoders": [
-                    {
-                        "type": "console",
-                        "label": "ITM",
-                        "port": 0
-                    }
-                ]
-            }
-        },
-        {
-            "name": "GDB Debug",
-            "cwd": "${workspaceFolder}",
-            "executable": "${workspaceFolder}/build/CMSIS_ADC.elf",
-            "request": "launch",
-            "type": "cortex-debug",
-            "servertype": "stlink",
-            "device": "STM32H743ZI",
-            "interface": "swd",
-            "runToEntryPoint": "main",
-            "showDevDebugOutput": "raw",
-            "preLaunchCommands": ["make -j8"],
-            // "svdFile": "${workspaceFolder}/STM32H743ZI.svd",
-            "swoConfig": {
-                "enabled": true,
-                "cpuFrequency": 4000000,
-                "swoFrequency": 4000000,
-                "source": "probe",
-                "decoders": [
-                    {
-                        "type": "console",
-                        "label": "ITM",
-                        "port": 0
-                    }
-                ]
-            }
+            "svdFile": "${workspaceFolder}/Docs/STM32H743ZI.svd",
         }
     ]
 }
